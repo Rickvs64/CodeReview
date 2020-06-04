@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class QuizMonitor : MonoBehaviour
@@ -63,23 +65,8 @@ public class QuizMonitor : MonoBehaviour
     /// <returns></returns>
     char GetAnswerLetterByIndex(int i)
     {
-        switch (i)
-        {
-            case 0:
-                return 'A';
-
-            case 1:
-                return 'B';
-
-            case 2:
-                return 'C';
-
-            case 3:
-                return 'D';
-
-            default:
-                return 'Z';
-        }
+        string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        return alphabet[i];
     }
 
     /// <summary>
@@ -89,14 +76,14 @@ public class QuizMonitor : MonoBehaviour
     void PlayAudioFromResources(string path)
     {
         AudioClip clip = (AudioClip)Resources.Load(path);
-        if (clip)
+        if (!clip)
         {
-            voiceSource.clip = clip;
-            voiceSource.Play();
-            Debug.Log("Playing audio file:" + path);
+            Debug.Log(String.Format($"Could not find audio file: {path}"));
+            return;
         }
-        else
-            Debug.Log("Could not find audio file: " + path);
+        voiceSource.clip = clip;
+        voiceSource.Play();
+        Debug.Log(String.Format($"Playing audio file: {path}"));
     }
 
     /// <summary>
@@ -114,14 +101,7 @@ public class QuizMonitor : MonoBehaviour
     /// <returns></returns>
     List<Light> FindCeilingLightsInScene()
     {
-        List<Light> list = new List<Light>();
-
-        foreach (Light l in FindObjectsOfType<Light>())
-        {
-            if (l.intensity == ceilingLightsIntensity)
-                list.Add(l);
-        }
-        return list;
+        return FindObjectsOfType<Light>().Where(i => i.intensity == ceilingLightsIntensity).ToList();
     }
 
     /// <summary>
@@ -136,10 +116,10 @@ public class QuizMonitor : MonoBehaviour
         questionComponent.text = q.Question;
         for (int i = 0; i < q.Answers.Count; i++)
         {
-            answerComponents[i].text = GetAnswerLetterByIndex(i) + ": " + q.Answers[i];
+            answerComponents[i].text = String.Format("{0}: {1}", GetAnswerLetterByIndex(i), q.Answers[i]);
         }
 
-        PlayAudioFromResources("Quiz/Audio/" + q.DetermineAudioName());
+        PlayAudioFromResources(String.Format($"Quiz/Audio/{q.DetermineAudioName()}"));
         StartCoroutine(FadeAudioSource.StartFade(ambientSource, 1.0f, 1.0f));
     }
 
@@ -154,7 +134,7 @@ public class QuizMonitor : MonoBehaviour
         questionComponent.text = "Het antwoord is...";
 
         string answer = answerComponents[selectedAnswer].text;
-        answerComponents[selectedAnswer].text = "[ " + answer + " ]";
+        answerComponents[selectedAnswer].text = String.Format($"[ {answer} ]");
 
         StopAudioFromResources();
         StartCoroutine(FadeAudioSource.StartFade(ambientSource, 1.0f, 0.5f));
@@ -183,7 +163,7 @@ public class QuizMonitor : MonoBehaviour
         answerComponents[selectedAnswer].color = incorrectColor;
 
         string answer = answerComponents[correctIndex].text;
-        answerComponents[correctIndex].text = ">>> " + answer + " <<<";
+        answerComponents[correctIndex].text = String.Format($">>> {answer} <<<");
         answerComponents[correctIndex].color = correctColor;
 
         notificationSource.PlayOneShot(incorrectSound);
@@ -195,7 +175,7 @@ public class QuizMonitor : MonoBehaviour
     /// <param name="score"></param>
     public void UpdateScore(int score)
     {
-        scoreComponent.text = "Score: " + score;
+        scoreComponent.text = String.Format($"Score: {score}");
     }
 
     /// <summary>
@@ -222,7 +202,7 @@ public class QuizMonitor : MonoBehaviour
 
         StartCoroutine(FadeAudioSource.StartFade(ambientSource, 3.0f, 0.0f));
 
-        questionComponent.text = "Score: " + score;
+        questionComponent.text = String.Format($"Score: {score}");
         questionComponent.fontSize = 128;
         if (victory)
         {

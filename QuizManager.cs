@@ -2,26 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine;
 
-
-enum QuizState
-{
-    Asleep,
-    Initializing,
-    ShowingScenario,
-    AwaitingAnswer,
-    ShowingResult,
-    EndingGame
-}
 public class QuizManager : MonoBehaviour
 {
     [SerializeField]
     List<QuizButton> buttons;
-    [SerializeField]
-    QuizMediaPlayer mediaPlayer;
     [SerializeField]
     QuizMonitor monitor;
     [SerializeField]
@@ -66,6 +55,7 @@ public class QuizManager : MonoBehaviour
 
     /// <summary>
     /// TEMPORARY method for starting the quiz after a delay.
+    /// This method can be removed once the quiz is activated manually by the player.
     /// </summary>
     /// <param name="delay">Delay in seconds.</param>
     /// <returns></returns>
@@ -85,18 +75,10 @@ public class QuizManager : MonoBehaviour
         answeredCorrectly = new List<QuizQuestion>();
         answeredIncorrectly = new List<QuizQuestion>();
 
-        LoadQuestions();
-
-        StartNextQuestion();
-    }
-
-    /// <summary>
-    /// Load questions into memory.
-    /// </summary>
-    void LoadQuestions()
-    {
         remainingQuestions = LoadQuestionsFromFile("Quiz/Questions");
         remainingQuestions.Shuffle();
+
+        StartNextQuestion();
     }
 
     /// <summary>
@@ -153,13 +135,7 @@ public class QuizManager : MonoBehaviour
     /// <returns>The scenario with a matching name or null if no matching scenario was found.</returns>
     QuizScenario FindScenarioByName(string name)
     {
-        foreach (QuizScenario qs in scenarios)
-        {
-            if (qs.Name == name)
-                return qs;
-        }
-        Debug.Log("Error in QuizManager.FindScenarioByName(): No matching scenario found!");
-        return null;
+        return scenarios.Where(i => i.Name == name).First();
     }
 
     /// <summary>
@@ -172,10 +148,10 @@ public class QuizManager : MonoBehaviour
         // TODO: Disable some buttons visually if the question has fewer answers than four.
 
         Debug.Log("QUESTION:");
-        Debug.Log("Q: " + q.Question);
+        Debug.Log(String.Format($"Q: {q.Question}"));
         foreach (string a in q.Answers)
         {
-            Debug.Log("A: " + a);
+            Debug.Log(String.Format($"A: {a}"));
         }
     }
 
@@ -277,7 +253,7 @@ public class QuizManager : MonoBehaviour
     {
         monitor.ShowAnswerAsIncorrect(correctAnswer);
         livesIndicator.ShowLives((maxIncorrect + 1) - answeredIncorrectly.Count);
-        Debug.Log("Answered incorrectly... the correct answer was: " + currentQuestion.CorrectAnswer);
+        Debug.Log(String.Format($"Answered incorrectly... the correct answer was: {currentQuestion.CorrectAnswer}"));
     }
 
     /// <summary>
@@ -347,7 +323,7 @@ public class QuizManager : MonoBehaviour
         int scoreAsInt = Convert.ToInt32(score);
         monitor.ShowGameEnded(completed, scoreAsInt);
         Debug.Log("The game has ended.");
-        Debug.Log("Your final score is: " + score);
+        Debug.Log(String.Format($"Your final score is: {score}"));
 
         StartCoroutine(WaitLoadMainMenu(delayBeforeLoadMenu));
     }

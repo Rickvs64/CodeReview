@@ -70,6 +70,6 @@ public class QuizQuestion
 
     public override string ToString()
     {
-        return "Question: " + question + "; Answer: " + answers[0];
+        return String.Format("Question: {0}; Answer: {1}", question, answers[0]);
     }
 }

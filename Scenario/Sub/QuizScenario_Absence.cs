@@ -46,6 +46,7 @@ public class QuizScenario_Absence : MonoBehaviour
         environment.SetActive(true);
         player.transform.position = new Vector3(0, 0, 0);
         player.FadeIn();
+        player.PlayCameraAnimation(0);
         yield return new WaitForSeconds(2.1f);
 
         player.FadeOut();
